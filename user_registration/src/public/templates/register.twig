@@ -1,0 +1,24 @@
+<html>
+    <head>
+        <meta charset="utf-8"/>
+        <title>User Register using Slim</title>
+        <link href='//fonts.googleapis.com/css?family=Lato:300' rel='stylesheet' type='text/css'>
+        <link href='{{ base_url() }}/css/style.css' rel='stylesheet' type='text/css'>
+    </head>
+    <body>
+        <h1>User Registration</h1>
+        <div>a PHP Powered</div>
+		<form action="/add_user" method="post">
+			<span style="color:red">{{ flash.message('error')[0] }}</span>
+
+			<fieldset>
+				<input name="first_name" type="text" placeholder="Enter First Name">
+				<input name="last_name" type="text" placeholder="Enter Last Name">
+				<input name="user_name" type="text" placeholder="Enter User Name">
+				<input name="user_password" type="password" placeholder="Enter Password">
+			</fieldset>
+				<input type="submit" class="button" value="Register">
+		</form>
+    </body>
+</html>
+        
