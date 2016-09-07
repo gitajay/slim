@@ -11,19 +11,12 @@ require '..\vendor\autoload.php';
 
 $app = new \Slim\App;
 	$config = require __DIR__ . '/config.php';
-	/*$config = [
-	'settings' => [
-		'displayErrorDetails' => true,
-		'base_path'=>'C:\xampp\htdocs\user_registration1\src\public\\'
-	],
-	];*/
+	
 $app = new \Slim\App($config);
-
 
 	// Fetch DI Container
 	$container = $app->getContainer();
 	//$settings = $container->get('settings');
-
 
 	// Register flash provider
 	$container['flash'] = function () {
@@ -34,7 +27,7 @@ $app = new \Slim\App($config);
 	// Register Twig View helper
 	$container['view'] = function ($c) use ($app) {
 		$view = new \Slim\Views\Twig('templates', [
-			// 'cache' => 'path/to/cache'
+			 'cache' => 'cache'
 		]);
 		
 	
@@ -45,34 +38,26 @@ $app = new \Slim\App($config);
 		return $view;
 	};
 	
-	//to set flash 
-	/*$app->add(function ($request, $response, $next) {
-		$this->view->offsetSet('flash', $this->flash);
-		return $next($request, $response);
-	});*/
 	
-//route for register page
-	$app->get('/user_registration', function (Request $request, Response $response, $args) {	
-		
-		return $this->view->render($response, 'register.twig', []);
-	});
+	
+
 	
 //route for adding a user
-	$app->post('/add_user', function (Request $request, Response $response) use ($app) {
-
-		//get the post req here
-		$post_req = $request->getParams();
-		$first_name = filter_var($post_req['first_name'], FILTER_SANITIZE_STRING);
-		$last_name = filter_var($post_req['last_name'], FILTER_SANITIZE_STRING);
-		$user_name = filter_var($post_req['user_name'], FILTER_SANITIZE_STRING);
-		$user_password = $post_req['user_password'];
-		
+	$app->any('/add_user', function (Request $request, Response $response) use ($app) {
+	$pdo = $app->getContainer('pdomysql');
 		if($request->isPost())
 		{
+			//get the post req here
+			$post_req = $request->getParams();
+			$first_name = filter_var($post_req['first_name'], FILTER_SANITIZE_STRING);
+			$last_name = filter_var($post_req['last_name'], FILTER_SANITIZE_STRING);
+			$user_name = filter_var($post_req['user_name'], FILTER_SANITIZE_STRING);
+			$user_password = $post_req['user_password'];
+		
+		
 			$dsn = $app->getContainer()->get('settings')['mysql']['dsn'];
 			$usr = $app->getContainer()->get('settings')['mysql']['usr'];
 			$pwd = $app->getContainer()->get('settings')['mysql']['pwd'];
-			
 			$pdo = new \Slim\PDO\Database($dsn, $usr, $pwd);
 			
 			//check if user exists
@@ -92,7 +77,7 @@ $app = new \Slim\App($config);
 				]);
 
 				// Redirect - render to be introduced
-				return $response->withStatus(302)->withHeader('Location', '/user_registration');
+				return $response->withStatus(302)->withHeader('Location', '/add_user');
 			}	
 			
 			if($data['user_name']!="")
@@ -105,7 +90,7 @@ $app = new \Slim\App($config);
 				]);
 
 				// Redirect - render to be introduced
-				return $response->withStatus(302)->withHeader('Location', '/user_registration');
+				return $response->withStatus(302)->withHeader('Location', '/add_user');
 			}
 			else
 			{
@@ -120,9 +105,11 @@ $app = new \Slim\App($config);
 				$this->view->render($response, 'user.twig', [
 					'flash' => $this->flash, 
 					'name' => $user_name
-				]);				
+				]);	
+				return false;
 			}
-		}		
+		}	
+		return $this->view->render($response, 'register.twig', []);
 	});
 	
 //route for welcome page
@@ -130,7 +117,7 @@ $app = new \Slim\App($config);
 		return $this->view->render($response, 'user.twig', []);
 	});
 	
-//route for register page
+//route for login page
 	$app->any('/user_login', function (Request $request, Response $response, $args) use ($app) {
 		//if post method is triggered
 		if($request->isPost())
@@ -183,7 +170,7 @@ $app = new \Slim\App($config);
 //home route
 	$app->get('/', function (Request $request, Response $response) {
 		// Redirect - render to be introduced
-		return $response->withStatus(302)->withHeader('Location', '/user_registration');
+		return $response->withStatus(302)->withHeader('Location', '/add_user');
 	});
 
 	$app->run();
