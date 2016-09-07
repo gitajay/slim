@@ -1,13 +1,10 @@
-Run it:
+====================================
+How to run?
+====================================
 
-$ cd user_registration
-$ php -S 0.0.0.0:8888 -t public public/index.php
-Browse to http://localhost:8888
+Set Apache DocumentRoot to the public folder of the project
 
-OR
-
-Run the application in apache
-
+eg) C:/xampp/htdocs/user_registration/src/public
 
 
 ====================================
