@@ -1,27 +1,24 @@
 <html>
     <head>
         <meta charset="utf-8"/>
-        <title>User Register using Slim</title>
+        <title>Login using Slim</title>
         <link href='//fonts.googleapis.com/css?family=Lato:300' rel='stylesheet' type='text/css'>
-		<!-- Bootstrap -->
 		<link href="bootstrap/css/bootstrap.min.css" rel="stylesheet">
-        <link href='{{ base_url() }}/css/style.css' rel='stylesheet' type='text/css'>
+        <link href='/user_registration1/src/public/css/style.css' rel='stylesheet' type='text/css'>
     </head>
     <body>
-        <h1>User Registration</h1>
+        <h1>Login Page</h1>
         <div>a PHP Powered</div>
-		<form action="/add_user" method="post">
+		<form action="/user_login" method="post">
 			<span style="color:red">{{ flash.message('error')[0] }}</span>
 
 			<fieldset>
-				<input name="first_name" type="text" placeholder="Enter First Name">
-				<input name="last_name" type="text" placeholder="Enter Last Name">
 				<input name="user_name" type="text" placeholder="Enter User Name">
 				<input name="user_password" type="password" placeholder="Enter Password">
 				</br>
-				<div><a href='user_login'>Already have an account, Login</a><div>
+				<a href='user_registration'>Register for an account</a>
 			</fieldset>
-				<input type="submit" class="button" value="Register">
+				<input type="submit" class="button" value="Login">
 				
 		</form>
     </body>

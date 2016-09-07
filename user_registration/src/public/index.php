@@ -6,13 +6,24 @@ session_start();
 use \Psr\Http\Message\ServerRequestInterface as Request;
 use \Psr\Http\Message\ResponseInterface as Response;
 use \Slim\Middleware\SessionCookie;
-
-require '../vendor/autoload.php';
+use \Slim\Http;
+require '..\vendor\autoload.php';
 
 $app = new \Slim\App;
+	$config = require __DIR__ . '/config.php';
+	/*$config = [
+	'settings' => [
+		'displayErrorDetails' => true,
+		'base_path'=>'C:\xampp\htdocs\user_registration1\src\public\\'
+	],
+	];*/
+$app = new \Slim\App($config);
 
-// Fetch DI Container
-$container = $app->getContainer();
+
+	// Fetch DI Container
+	$container = $app->getContainer();
+	//$settings = $container->get('settings');
+
 
 	// Register flash provider
 	$container['flash'] = function () {
@@ -21,11 +32,12 @@ $container = $app->getContainer();
 	
 	
 	// Register Twig View helper
-	$container['view'] = function ($c) {
+	$container['view'] = function ($c) use ($app) {
 		$view = new \Slim\Views\Twig('templates', [
 			// 'cache' => 'path/to/cache'
 		]);
-
+		
+	
 		// Instantiate and add Slim specific extension
 		$basePath = rtrim(str_ireplace('index.php', '', $c['request']->getUri()->getBasePath()), '/');
 		$view->addExtension(new Slim\Views\TwigExtension($c['router'], $basePath));
@@ -34,22 +46,19 @@ $container = $app->getContainer();
 	};
 	
 	//to set flash 
-	$app->add(function ($request, $response, $next) {
+	/*$app->add(function ($request, $response, $next) {
 		$this->view->offsetSet('flash', $this->flash);
 		return $next($request, $response);
-	});
+	});*/
 	
-	//route for register page
-	$app->get('/user_registration', function (Request $request, Response $response, $args) {
+//route for register page
+	$app->get('/user_registration', function (Request $request, Response $response, $args) {	
+		
 		return $this->view->render($response, 'register.twig', []);
 	});
 	
-	//route for adding a user
-	$app->post('/add_user', function (Request $request, Response $response) {
-		$config = require __DIR__ . '/config.php';
-		$dsn = $config['settings']['mysql']['dsn'];
-		$usr = $config['settings']['mysql']['usr'];
-		$pwd = $config['settings']['mysql']['pwd'];
+//route for adding a user
+	$app->post('/add_user', function (Request $request, Response $response) use ($app) {
 
 		//get the post req here
 		$post_req = $request->getParams();
@@ -60,6 +69,10 @@ $container = $app->getContainer();
 		
 		if($request->isPost())
 		{
+			$dsn = $app->getContainer()->get('settings')['mysql']['dsn'];
+			$usr = $app->getContainer()->get('settings')['mysql']['usr'];
+			$pwd = $app->getContainer()->get('settings')['mysql']['pwd'];
+			
 			$pdo = new \Slim\PDO\Database($dsn, $usr, $pwd);
 			
 			//check if user exists
@@ -112,9 +125,65 @@ $container = $app->getContainer();
 		}		
 	});
 	
-	//route for welcome page
+//route for welcome page
 	$app->get('/user_page', function (Request $request, Response $response, $args) {
 		return $this->view->render($response, 'user.twig', []);
+	});
+	
+//route for register page
+	$app->any('/user_login', function (Request $request, Response $response, $args) use ($app) {
+		//if post method is triggered
+		if($request->isPost())
+		{
+			//get the post req here
+			$post_req = $request->getParams();
+			$user_name = $post_req['user_name'];
+			$user_password = $post_req['user_password'];
+			
+			$dsn = $app->getContainer()->get('settings')['mysql']['dsn'];
+			$usr = $app->getContainer()->get('settings')['mysql']['usr'];
+			$pwd = $app->getContainer()->get('settings')['mysql']['pwd'];
+			
+			$pdo = new \Slim\PDO\Database($dsn, $usr, $pwd);
+			
+			//check if user exists
+			$selectStatement = $pdo->select()
+							   ->from('user_registration')
+							   ->where('user_name', '=', $user_name)
+							   ->where('user_password', '=', $user_password);
+
+			$stmt = $selectStatement->execute();
+			$data = $stmt->fetch();
+			
+			if(!$data['user_name'])
+			{
+				// Set flash message for next request
+				$this->flash->addMessage('error', 'Not valid, try again');
+				
+				$this->view->render($response, 'login.twig', [
+					'flash' => $this->flash
+				]);
+				
+				// Redirect - render to be introduced
+				return $response->withStatus(302)->withHeader('Location', '/user_login');
+			}
+			if($data['user_name'] != "")
+			{
+				//render the welcome page
+				$this->view->render($response, 'user.twig', [
+					'flash' => $this->flash, 
+					'name' => $user_name
+				]);	
+			}
+			return false;
+		}
+		return $this->view->render($response, 'login.twig', []);
+	});
+
+//home route
+	$app->get('/', function (Request $request, Response $response) {
+		// Redirect - render to be introduced
+		return $response->withStatus(302)->withHeader('Location', '/user_registration');
 	});
 
 	$app->run();
